@@ -2,12 +2,12 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
-      "use": "@vercel/node",
-      "config": { "includeFiles": ["dist/**"] }
+      "src": "package.json", // This build is for the entire project, running 'npm run build'
+      "use": "@vercel/node"
+      // No need for "config": { "includeFiles": ["dist/**"] } here, as the routes will handle the `dist` output.
     },
     {
-      "src": "client/index.html",
+      "src": "client/index.html", // <-- Changed this to point to the *source* index.html
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist/public"
@@ -17,12 +17,12 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/server/index.ts"
+      "dest": "/dist/index.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/client/index.html"
+      "dest": "/dist/public/index.html"
     }
   ],
-  "buildCommand": "npm install && npm run build"
+  "buildCommand": "npm run build"
 }
