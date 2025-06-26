@@ -10,8 +10,6 @@
     "rootDirectory": "./"
   },
   "variables": {
-    // Add any environment variables your application needs here.
-    // For example:
-    // "NODE_ENV": "production"
+    
   }
 }
