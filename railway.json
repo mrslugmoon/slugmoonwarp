@@ -1,15 +1,10 @@
 {
-  "$schema": "https://railway.app/railway.schema.json",
-  "name": "slugmoonwarp",
-  "deploy": {
-    "buildCommands": [
-      "npm install",
-      "npm run build"
-    ],
-    "startCommand": "node dist/index.js",
-    "rootDirectory": "./"
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "npm install && npm run build"
   },
-  "variables": {
-    
+  "deploy": {
+    "startCommand": "npm start",
+    "healthcheckPath": "/"
   }
 }
