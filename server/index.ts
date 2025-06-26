@@ -73,17 +73,9 @@ if (process.env.NODE_ENV === "development") {
       await setupVite(app, localServer);
 
       // This block is for local development only
-      const port = 5000;
-      localServer.listen({
-        port,
-        host: "0.0.0.0",
-        reusePort: true,
-      }, () => {
-        log(`serving on port ${port}`);
-      });
-    } catch (e) {
-      console.error("Error starting local development server:", e);
-    }
-  })();
+     if (process.env.NODE_ENV !== "development") {
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
 }
-
