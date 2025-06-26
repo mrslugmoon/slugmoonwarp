@@ -1,24 +1,22 @@
-// server/index.ts
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { registerRoutes } from "./routes";
-// Keep log here as it's used conditionally in the dev block, or move it.
-import { log } from "./vite"; // Keep this import for the conditional 'log' calls
-
-// Do NOT import setupVite and serveStatic at the top level if they are only used conditionally
-// import { setupVite, serveStatic } from "./vite"; // <-- REMOVE or comment out these top-level imports if they're not used elsewhere
-                                                  // They will be dynamically imported below.
+import { log } from "./vite"; // Used in request logging
 
 const app = express();
+
+// Middleware: JSON + URL-encoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  credentials: true
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  credentials: true,
 }));
 
+// Logger Middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -43,10 +41,13 @@ app.use((req, res, next) => {
       log(logLine);
     }
   });
+
   next();
 });
 
+
 registerRoutes(app);
+
 
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;
@@ -55,27 +56,26 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ message });
 });
 
-// IMPORTANT: Export the Express app instance for Vercel
+
 export default app;
 
-// --- Local Development Server Setup (ONLY for running locally) ---
+
 if (process.env.NODE_ENV === "development") {
-  // Use dynamic imports here
   (async () => {
     try {
-      // Dynamically import 'http' and 'vite' related functions
       const { createServer } = await import("http");
-      const { setupVite, serveStatic } = await import("./vite"); // Assuming vite.ts exports these
+      const { setupVite, serveStatic } = await import("./vite");
 
       const localServer = createServer(app);
 
-      // Importantly, setupVite should also be conditional
       await setupVite(app, localServer);
 
-      // This block is for local development only
-     if (process.env.NODE_ENV !== "development") {
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  });
+      const port = Number(process.env.PORT) || 5000;
+      localServer.listen({ port, host: "0.0.0.0", reusePort: true }, () => {
+        log(`Serving on port ${port}`);
+      });
+    } catch (e) {
+      console.error("Error starting local development server:", e);
+    }
+  })();
 }
