@@ -1,22 +1,20 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { registerRoutes } from "./routes";
-import { log } from "./vite"; // Used in request logging
+import { log } from "./vite"; // Keep this import for the conditional 'log' calls
 
 const app = express();
-
-// Middleware: JSON + URL-encoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-
+// CORS setup for all origins (be cautious in production)
 app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  credentials: true,
+  origin: '*',  // You might want to restrict origins in production
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  credentials: true
 }));
 
-// Logger Middleware
+// Middleware to log requests and responses
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -41,14 +39,13 @@ app.use((req, res, next) => {
       log(logLine);
     }
   });
-
   next();
 });
 
-
+// Register API routes
 registerRoutes(app);
 
-
+// Global error handling middleware
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;
   const message = err.message || "Internal Server Error";
@@ -56,10 +53,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ message });
 });
 
-
-export default app;
-
-
+// --- Local Development Server Setup (ONLY for running locally) ---
 if (process.env.NODE_ENV === "development") {
   (async () => {
     try {
@@ -78,4 +72,13 @@ if (process.env.NODE_ENV === "development") {
       console.error("Error starting local development server:", e);
     }
   })();
+} else {
+  // Production environment setup: Make server publicly accessible
+  const port = process.env.PORT || 5000;
+  const host = "0.0.0.0";  // Listen on all available interfaces
+  app.listen(port, host, () => {
+    console.log(`App is running on port ${port}`);
+  });
 }
+
+export default app; // Export app for Vercel or other cloud platforms
