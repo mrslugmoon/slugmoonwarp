@@ -8,8 +8,7 @@
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
-    "db:push": "drizzle-kit push",
-    "buildCommand": "npm install --omit=dev && npm run build"
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -47,6 +46,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "connect-pg-simple": "^10.0.0",
+    "cors": "^2.8.5",
     "date-fns": "^3.6.0",
     "drizzle-orm": "^0.39.1",
     "drizzle-zod": "^0.7.0",
@@ -74,8 +74,7 @@
     "wouter": "^3.3.5",
     "ws": "^8.18.0",
     "zod": "^3.24.2",
-    "Zod-validation-error": "^3.4.0",
-    "cors": "^2.8.5"
+    "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
     "@replit/vite-plugin-cartographer": "^0.2.7",
