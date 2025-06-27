@@ -253,7 +253,7 @@ export default function Home() {
           {/* Footer */}
           <div className="text-center mt-6">
             <p className="text-gray-500 text-xs">
-              Not affiliated with Roblox Corporation
+              Slugmoon Warp ©. Slugmoon Warp is apart of Slugmoon Suite. All rights reserved.
             </p>
           </div>
         </div>
