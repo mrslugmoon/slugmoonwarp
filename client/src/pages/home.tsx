@@ -7,6 +7,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Gamepad2, Hash, AlertCircle, Play, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+const launchData = {
+  method: "Joined via SWarp"
+}
+const jsonString = JSON.stringify(launchData);
 
 // Game info interface
 interface GameInfo {
@@ -82,7 +86,7 @@ export default function Home() {
 
     try {
       // Construct Roblox URL
-      const robloxUrl = `roblox://experiences/start?placeId=${placeId.trim()}&gameInstanceId=${gameInstanceId.trim()}`;
+      const robloxUrl = `roblox://experiences/start?placeId=${placeId.trim()}&gameInstanceId=${gameInstanceId.trim()}&launchData=${jsonString}`;
       
       // Show confirmation dialog
       setPendingUrl(robloxUrl);
