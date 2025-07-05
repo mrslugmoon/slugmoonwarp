@@ -49,10 +49,6 @@ export default function Home() {
     const value = e.target.value;
     setPlaceId(value);
     setError(""); // Clear form validation error when input changes
-    // Note: React Query will automatically refetch gameInfo if placeId (part of queryKey) changes,
-    // provided the query is 'enabled' and the new key is not already in cache and fresh.
-    // Explicit invalidation here is typically not needed unless you want to force a refetch
-    // even if the new ID was previously fetched and is still considered 'staleTime' fresh.
   };
 
   const handleGameInstanceIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,7 +173,7 @@ export default function Home() {
                         onChange={handlePlaceIdChange}
                         placeholder="Enter place ID..."
                         className={`w-full px-4 py-3 bg-gray-800 border text-white placeholder:text-gray-500 focus:ring-2 focus:ring-roblox-blue focus:border-transparent transition-all duration-200 ${
-                          error || gameInfoError ? 'border-roblox-error' : 'border-gray-600' // Apply error style for gameInfo fetch errors too
+                          error || gameInfoError ? 'border-roblox-error' : 'border-gray-600'
                         }`}
                         required
                         disabled={isLoading}
@@ -191,7 +187,7 @@ export default function Home() {
                         <div className="animate-spin rounded-full h-3 w-3 border-b border-gray-400 mr-2"></div>
                         Loading game info...
                       </div>
-                    ) : gameInfoError ? ( // Display error message if game info fetch failed
+                    ) : gameInfoError ? (
                       <div className="text-xs text-red-400 mt-1 flex items-center">
                         <AlertCircle className="mr-1" size={14} /> Failed to load game info for this ID.
                       </div>
@@ -229,7 +225,7 @@ export default function Home() {
                   </div>
 
                   {/* Error Message */}
-                  {error && ( // Display general form validation errors
+                  {error && (
                     <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
                       <div className="flex items-center space-x-2">
                         <AlertCircle className="text-red-400 flex-shrink-0" size={16} />
@@ -241,7 +237,7 @@ export default function Home() {
                   {/* Submit Button */}
                   <Button
                     type="submit"
-                    disabled={isLoading || !placeId.trim() || loadingGameName || !!gameInfoError} // Disable if overall loading, no placeId, or game info is loading/errored
+                    disabled={isLoading || !placeId.trim() || loadingGameName || !!gameInfoError}
                     className="w-full py-3 px-6 gradient-roblox-button hover:gradient-roblox-button text-white font-semibold text-lg transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {isLoading ? (
@@ -303,8 +299,11 @@ export default function Home() {
                   onError={(e) => {
                     // Fallback if image fails to load
                     e.currentTarget.style.display = 'none';
-                    e.currentTarget.parentElement?.classList.add('bg-gray-700', 'flex', 'items-center', 'justify-center');
-                    e.currentTarget.parentElement?.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gamepad2 text-gray-400"><path d="M6 12H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2m0 6v2a2 2 0 0 0 2 2h2m0-6H8a2 2 0 0 0-2 2v2m6 0h2a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2m0 6v-2a2 2 0 0 1-2-2H8m6 4h-2a2 2 0 0 1-2-2v-2m6 0v2a2 2 0 0 1-2 2h-2m2-6h2a2 2 0 0 1 2 2v2m-6-4h-2a2 2 0 0 0-2 2v2m0-6h-2a2 2 0 0 0-2 2v2m6 0v-2a2 2 0 0 0-2-2h-2m6 0v2a2 2 0 0 0 2 2h-2"/><path d="M16 2a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2H8A2 2 0 0 1 6 5V4a2 2 0 0 1 2-2h8z"/></svg>';
+                    const parent = e.currentTarget.parentElement;
+                    if (parent) { // <-- ADD THIS CHECK
+                        parent.classList.add('bg-gray-700', 'flex', 'items-center', 'justify-center');
+                        parent.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gamepad2 text-gray-400"><path d="M6 12H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2m0 6v2a2 2 0 0 0 2 2h2m0-6H8a2 2 0 0 0-2 2v2m6 0h2a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2m0 6v-2a2 2 0 0 1-2-2H8m6 4h-2a2 2 0 0 1-2-2v-2m6 0v2a2 2 0 0 1-2 2h-2m2-6h2a2 2 0 0 1 2 2v2m-6-4h-2a2 2 0 0 0-2 2v2m0-6h-2a2 2 0 0 0-2 2v2m6 0v-2a2 2 0 0 0-2-2h-2m6 0v2a2 2 0 0 0 2 2h-2"/><path d="M16 2a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2H8A2 2 0 0 1 6 5V4a2 2 0 0 1 2-2h8z"/></svg>';
+                    }
                   }}
                 />
               </div>
