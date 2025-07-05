@@ -63,10 +63,10 @@ export default function Home() {
       setError("Please enter a Place ID");
       return false;
     }
-    if (!gameInstanceId.trim()) {
-      setError("Please enter a Game Instance ID");
-      return false;
-    }
+  //  if (!gameInstanceId.trim()) {
+  //    setError("Please enter a Game Instance ID");
+  //    return false;
+ //   }
     if (!/^\d+$/.test(placeId.trim())) {
       setError("Place ID must be a valid number");
       return false;
@@ -144,7 +144,7 @@ export default function Home() {
                 Slugmoon Warp
               </span>
             </h1>
-            <p className="text-gray-400 text-sm">Enter your game instance ID to join quickly</p>
+            <p className="text-gray-400 text-sm gradient-text-animated">Get to the right server fast with Slugmoon Warp.</p>
           </div>
 
           {/* Main Card */}
