@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Gamepad2, Hash, AlertCircle, Play, X } from "lucide-react";
+import { Gamepad2, Hash, AlertCircle, Play, X, Info } from "lucide-react"; // Import Info icon
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 
@@ -146,12 +146,12 @@ export default function Home() {
             <div className="inline-flex items-center justify-center w-16 h-16 gradient-roblox rounded-2xl mb-4">
               <Gamepad2 className="text-white text-2xl" size={32} />
             </div>
-            <h1 className="text-3xl font-bold mb-2">
+            <h1 className="3xl font-bold mb-2">
               <span className="gradient-text-animated">
                 Slugmoon Warp
               </span>
             </h1>
-            <p className="text-gray-400 text-sm gradient-text-animated">Get to the right server fast with Slugmoon Warp.</p>
+            <p className="text-gray-400 text-sm">Get to the right server fast with Slugmoon Warp.</p>
           </div>
 
           {/* Main Card */}
@@ -267,6 +267,17 @@ export default function Home() {
             </Card>
           </div>
 
+          {/* Info Container for Roblox Installation */}
+          <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4 mt-6 text-white text-sm flex items-start space-x-3">
+            <Info className="text-blue-400 flex-shrink-0 mt-0.5" size={18} />
+            <div>
+              <p className="font-semibold mb-1">Roblox Installation Required</p>
+              <p className="text-blue-300">
+                To use Slugmoon Warp, you must have the **Roblox client installed** on your computer. This tool works by sending a direct launch command to Roblox.
+              </p>
+            </div>
+          </div>
+
           {/* Footer */}
           <div className="text-center mt-6">
             <p className="text-gray-500 text-xs">
@@ -300,7 +311,7 @@ export default function Home() {
                     // Fallback if image fails to load
                     e.currentTarget.style.display = 'none';
                     const parent = e.currentTarget.parentElement;
-                    if (parent) { // <-- ADD THIS CHECK
+                    if (parent) {
                         parent.classList.add('bg-gray-700', 'flex', 'items-center', 'justify-center');
                         parent.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gamepad2 text-gray-400"><path d="M6 12H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2m0 6v2a2 2 0 0 0 2 2h2m0-6H8a2 2 0 0 0-2 2v2m6 0h2a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2m0 6v-2a2 2 0 0 1-2-2H8m6 4h-2a2 2 0 0 1-2-2v-2m6 0v2a2 2 0 0 1-2 2h-2m2-6h2a2 2 0 0 1 2 2v2m-6-4h-2a2 2 0 0 0-2 2v2m0-6h-2a2 2 0 0 0-2 2v2m6 0v-2a2 2 0 0 0-2-2h-2m6 0v2a2 2 0 0 0 2 2h-2"/><path d="M16 2a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2H8A2 2 0 0 1 6 5V4a2 2 0 0 1 2-2h8z"/></svg>';
                     }
