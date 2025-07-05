@@ -76,7 +76,7 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateInputs()) {
       return;
     }
@@ -84,26 +84,52 @@ export default function Home() {
     setError("");
     setIsLoading(true);
 
-    try {
-      // Construct Roblox URL
-      const robloxUrl = `roblox://experiences/start?placeId=${placeId.trim()}&gameInstanceId=${gameInstanceId.trim()}&launchData=${jsonString}`;
-      
-      // Show confirmation dialog
-      setPendingUrl(robloxUrl);
-      setShowConfirmDialog(true);
-      setIsLoading(false);
-    } catch (err) {
-      console.error("Error joining game:", err);
-      setError("Failed to join game. Please try again.");
-      setIsLoading(false);
-      
-      toast({
-        title: "Error",
-        description: "Failed to join game. Please try again.",
-        variant: "destructive",
-      });
+   // ... (inside your handleSubmit function)
+
+try {
+    const trimmedGameInstanceId = gameInstanceId.trim();
+    let robloxUrl: string; // Declare with 'let' so it can be reassigned
+
+    // Define the base launchData, which always includes the method
+    const baseLaunchData = {
+        method: "Joined via SWarp"
+    };
+    // Stringify and encode the base launchData once
+    const jsonStringForUrl = JSON.stringify(baseLaunchData);
+    const encodedLaunchData = encodeURIComponent(jsonStringForUrl);
+
+    // Conditional construction of robloxUrl
+    if (trimmedGameInstanceId === '' || trimmedGameInstanceId.toUpperCase() === 'N/A') {
+        // If gameInstanceId is blank or "N/A", omit the gameInstanceId parameter
+        robloxUrl = `roblox://experiences/start?placeId=${placeId.trim()}&launchData=${encodedLaunchData}`;
+    } else {
+        // If gameInstanceId is provided and valid, include it
+        robloxUrl = `roblox://experiences/start?placeId=${placeId.trim()}&gameInstanceId=${trimmedGameInstanceId}&launchData=${encodedLaunchData}`;
     }
-  };
+
+    // Show confirmation dialog
+    setPendingUrl(robloxUrl);
+    setShowConfirmDialog(true);
+    // Removed setIsLoading(false) here, as it's typically handled in the finally block
+    // or after the user confirms the dialog, depending on your desired UX flow.
+    // Given your existing finally block, keeping it there is cleaner.
+
+} catch (err) {
+    console.error("Error preparing game launch:", err); // More descriptive error message
+    setError("Failed to prepare game launch. Please try again.");
+    // No need to setIsLoading(false) here if you have a finally block
+    toast({
+        title: "Error",
+        description: "Failed to prepare game launch. Please try again.",
+        variant: "destructive",
+    });
+}
+// Note: The 'finally' block is crucial here to ensure setIsLoading(false) runs
+// after both success and error paths.
+// Your existing 'finally' block below the 'catch' block should remain:
+// finally {
+//   setIsLoading(false);
+// }
 
   const confirmJoinGame = () => {
     setShowConfirmDialog(false);
@@ -187,29 +213,35 @@ export default function Home() {
                     ) : null}
                   </div>
 
-                  {/* Game Instance ID Field */}
-                  <div className="space-y-2">
-                    <Label htmlFor="gameInstanceId" className="text-sm font-medium text-gray-300">
-                      Game Instance ID
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="gameInstanceId"
-                        type="text"
-                        value={gameInstanceId}
-                        onChange={handleGameInstanceIdChange}
-                        placeholder="Enter game instance ID..."
-                        className={`w-full px-4 py-3 bg-gray-800 border text-white placeholder:text-gray-500 focus:ring-2 focus:ring-roblox-blue focus:border-transparent transition-all duration-200 ${
-                          error ? 'border-roblox-error' : 'border-gray-600'
-                        }`}
-                        required
-                        disabled={isLoading}
-                      />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                        <Hash className="text-gray-500" size={16} />
-                      </div>
-                    </div>
-                  </div>
+               {/* Game Instance ID Field */}
+<div className="space-y-2">
+  <Label htmlFor="gameInstanceId" className="text-sm font-medium text-gray-300">
+    Game Instance ID
+  </Label>
+  <div className="relative">
+    <Input
+      id="gameInstanceId"
+      type="text"
+      value={gameInstanceId}
+      onChange={handleGameInstanceIdChange}
+      placeholder="Enter game instance ID..."
+      className={`w-full px-4 py-3 bg-gray-800 border text-white placeholder:text-gray-500 focus:ring-2 focus:ring-roblox-blue focus:border-transparent transition-all duration-200 ${
+        error ? 'border-roblox-error' : 'border-gray-600'
+      }`}
+      // Consider removing 'required' if 'N/A' or empty is truly optional for instance ID
+      // If you keep 'required', the user will be forced to type something, even 'N/A'.
+      // If 'N/A' or empty means 'any server', then 'required' might not be appropriate.
+      disabled={isLoading}
+    />
+    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+      <Hash className="text-gray-500" size={16} />
+    </div>
+  </div>
+  {/* NEW DESCRIPTION BIT BELOW */}
+  <div className="text-xs text-gray-400 mt-1">
+    Putting "N/A" in this field will make you teleport to any server.
+  </div>
+</div>
 
                   {/* Error Message */}
                   {error && (
