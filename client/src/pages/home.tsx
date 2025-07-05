@@ -273,7 +273,7 @@ export default function Home() {
             <div>
               <p className="font-semibold mb-1">Roblox Installation Required</p>
               <p className="text-blue-300">
-                To use Slugmoon Warp, you must have the **Roblox client installed** on your computer. This tool works by sending a direct launch command to Roblox.
+                To use Slugmoon Warp, you must have the Roblox client installed on your computer. This tool works by sending a direct launch command to Roblox.
               </p>
             </div>
           </div>
