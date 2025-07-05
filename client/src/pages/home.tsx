@@ -27,29 +27,37 @@ interface GameInfo {
 export default function Home() {
   const [placeId, setPlaceId] = useState("130452706173960");
   const [gameInstanceId, setGameInstanceId] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // For form submission/launching
+  const [error, setError] = useState(""); // For form validation errors
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingUrl, setPendingUrl] = useState("");
   const { toast } = useToast();
 
   // Fetch game info when place ID changes
-  const { data: gameInfo, isLoading: loadingGameName } = useQuery<GameInfo>({
+  const {
+    data: gameInfo,
+    isLoading: loadingGameName, // True when fetching game info
+    error: gameInfoError // Capture errors specifically for game info fetch
+  } = useQuery<GameInfo>({
     queryKey: [`/api/game-info/${placeId}`],
     enabled: !!placeId && placeId.trim() !== "" && /^\d+$/.test(placeId.trim()),
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: false, // Keep as false if you prefer no refetch on focus
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const handlePlaceIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPlaceId(value);
-    setError(""); // Clear error when input changes
+    setError(""); // Clear form validation error when input changes
+    // Note: React Query will automatically refetch gameInfo if placeId (part of queryKey) changes,
+    // provided the query is 'enabled' and the new key is not already in cache and fresh.
+    // Explicit invalidation here is typically not needed unless you want to force a refetch
+    // even if the new ID was previously fetched and is still considered 'staleTime' fresh.
   };
 
   const handleGameInstanceIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGameInstanceId(e.target.value);
-    setError(""); // Clear error when input changes
+    setError(""); // Clear form validation error when input changes
   };
 
   const validateInputs = () => {
@@ -71,27 +79,22 @@ export default function Home() {
       return;
     }
 
-    setError("");
-    setIsLoading(true);
+    setError(""); // Clear general form error
+    setIsLoading(true); // Indicate overall submission loading
 
     try {
       const trimmedGameInstanceId = gameInstanceId.trim();
-      let robloxUrl: string; // Declare with 'let' so it can be reassigned
+      let robloxUrl: string;
 
-      // Define the base launchData, which always includes the method
       const baseLaunchData = {
         method: "Joined via SWarp"
       };
-      // Stringify and encode the base launchData once
       const jsonStringForUrl = JSON.stringify(baseLaunchData);
       const encodedLaunchData = encodeURIComponent(jsonStringForUrl);
 
-      // Conditional construction of robloxUrl
       if (trimmedGameInstanceId === '' || trimmedGameInstanceId.toUpperCase() === 'N/A') {
-        // If gameInstanceId is blank or "N/A", omit the gameInstanceId parameter
         robloxUrl = `roblox://experiences/start?placeId=${placeId.trim()}&launchData=${encodedLaunchData}`;
       } else {
-        // If gameInstanceId is provided and valid, include it
         robloxUrl = `roblox://experiences/start?placeId=${placeId.trim()}&gameInstanceId=${trimmedGameInstanceId}&launchData=${encodedLaunchData}`;
       }
 
@@ -108,10 +111,9 @@ export default function Home() {
         variant: "destructive",
       });
     } finally {
-      // This finally block ensures isLoading is set to false after try or catch
-      setIsLoading(false);
+      setIsLoading(false); // Always stop overall loading after attempt
     }
-  }; // <--- THIS CLOSING BRACE IS CRUCIAL AND WAS MISPLACED/MISSING IN PREVIOUS VERSIONS
+  };
 
   const confirmJoinGame = () => {
     setShowConfirmDialog(false);
@@ -175,7 +177,7 @@ export default function Home() {
                         onChange={handlePlaceIdChange}
                         placeholder="Enter place ID..."
                         className={`w-full px-4 py-3 bg-gray-800 border text-white placeholder:text-gray-500 focus:ring-2 focus:ring-roblox-blue focus:border-transparent transition-all duration-200 ${
-                          error ? 'border-roblox-error' : 'border-gray-600'
+                          error || gameInfoError ? 'border-roblox-error' : 'border-gray-600' // Apply error style for gameInfo fetch errors too
                         }`}
                         required
                         disabled={isLoading}
@@ -188,6 +190,10 @@ export default function Home() {
                       <div className="text-xs text-gray-400 mt-1 flex items-center">
                         <div className="animate-spin rounded-full h-3 w-3 border-b border-gray-400 mr-2"></div>
                         Loading game info...
+                      </div>
+                    ) : gameInfoError ? ( // Display error message if game info fetch failed
+                      <div className="text-xs text-red-400 mt-1 flex items-center">
+                        <AlertCircle className="mr-1" size={14} /> Failed to load game info for this ID.
                       </div>
                     ) : gameInfo?.name ? (
                       <div className="text-xs text-gray-400 mt-1">
@@ -223,7 +229,7 @@ export default function Home() {
                   </div>
 
                   {/* Error Message */}
-                  {error && (
+                  {error && ( // Display general form validation errors
                     <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
                       <div className="flex items-center space-x-2">
                         <AlertCircle className="text-red-400 flex-shrink-0" size={16} />
@@ -235,7 +241,7 @@ export default function Home() {
                   {/* Submit Button */}
                   <Button
                     type="submit"
-                    disabled={isLoading || !placeId.trim()} // Removed !gameInstanceId.trim() from here, as it's now optional
+                    disabled={isLoading || !placeId.trim() || loadingGameName || !!gameInfoError} // Disable if overall loading, no placeId, or game info is loading/errored
                     className="w-full py-3 px-6 gradient-roblox-button hover:gradient-roblox-button text-white font-semibold text-lg transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {isLoading ? (
@@ -252,7 +258,7 @@ export default function Home() {
                   </Button>
                 </form>
 
-                {/* Loading Overlay */}
+                {/* Loading Overlay - only for form submission, not for game info fetch */}
                 {isLoading && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="text-center">
@@ -295,7 +301,10 @@ export default function Home() {
                   alt={`${gameInfo.name || 'Game'} icon`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
+                    // Fallback if image fails to load
                     e.currentTarget.style.display = 'none';
+                    e.currentTarget.parentElement?.classList.add('bg-gray-700', 'flex', 'items-center', 'justify-center');
+                    e.currentTarget.parentElement?.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gamepad2 text-gray-400"><path d="M6 12H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2m0 6v2a2 2 0 0 0 2 2h2m0-6H8a2 2 0 0 0-2 2v2m6 0h2a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2m0 6v-2a2 2 0 0 1-2-2H8m6 4h-2a2 2 0 0 1-2-2v-2m6 0v2a2 2 0 0 1-2 2h-2m2-6h2a2 2 0 0 1 2 2v2m-6-4h-2a2 2 0 0 0-2 2v2m0-6h-2a2 2 0 0 0-2 2v2m6 0v-2a2 2 0 0 0-2-2h-2m6 0v2a2 2 0 0 0 2 2h-2"/><path d="M16 2a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2H8A2 2 0 0 1 6 5V4a2 2 0 0 1 2-2h8z"/></svg>';
                   }}
                 />
               </div>
@@ -332,6 +341,15 @@ export default function Home() {
                     <div>Visits</div>
                   </div>
                   )}
+              </div>
+            )}
+            {/* Display error in dialog if game info failed to load for confirmation */}
+            {gameInfoError && (
+              <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 w-full text-center">
+                <div className="flex items-center justify-center space-x-2">
+                  <AlertCircle className="text-red-400 flex-shrink-0" size={16} />
+                  <p className="text-red-400 text-sm">Could not load full game details.</p>
+                </div>
               </div>
             )}
           </div>
