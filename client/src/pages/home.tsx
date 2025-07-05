@@ -146,7 +146,7 @@ export default function Home() {
             <div className="inline-flex items-center justify-center w-16 h-16 gradient-roblox rounded-2xl mb-4">
               <Gamepad2 className="text-white text-2xl" size={32} />
             </div>
-            <h1 className="3xl font-bold mb-2">
+            <h1 className="text-3xl font-bold mb-2"> {/* Corrected: changed '3xl' to 'text-3xl' */}
               <span className="gradient-text-animated">
                 Slugmoon Warp
               </span>
