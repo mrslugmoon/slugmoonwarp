@@ -1,3 +1,4 @@
+// client/src/pages/home.tsx
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Gamepad2, Hash, AlertCircle, Play, X, Info } from "lucide-react"; // Import Info icon
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter"; // <--- Import useLocation from wouter
 
 // Game info interface
 interface GameInfo {
@@ -25,8 +27,27 @@ interface GameInfo {
 }
 
 export default function Home() {
-  const [placeId, setPlaceId] = useState("130452706173960");
-  const [gameInstanceId, setGameInstanceId] = useState("");
+  const [location] = useLocation(); // <--- Get the current URL location string
+
+  // Initialize placeId and gameInstanceId states from URL or default values
+  const [placeId, setPlaceId] = useState(() => {
+    const queryString = location.split('?')[1];
+    if (queryString) {
+      const searchParams = new URLSearchParams(queryString);
+      return searchParams.get('placeId') || "130452706173960"; // Default if not in URL
+    }
+    return "130452706173960"; // Default if no query string
+  });
+
+  const [gameInstanceId, setGameInstanceId] = useState(() => {
+    const queryString = location.split('?')[1];
+    if (queryString) {
+      const searchParams = new URLSearchParams(queryString);
+      return searchParams.get('serverId') || ""; // Default if not in URL
+    }
+    return ""; // Default if no query string
+  });
+
   const [isLoading, setIsLoading] = useState(false); // For form submission/launching
   const [error, setError] = useState(""); // For form validation errors
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -44,6 +65,29 @@ export default function Home() {
     refetchOnWindowFocus: false, // Keep as false if you prefer no refetch on focus
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Optional: If you want to react to URL changes after initial load
+  // and update the form fields, you can add another useEffect.
+  // However, usually, we just initialize once.
+  // If a user navigates to a new URL, the component would remount
+  // or the `useState` initializer would run again.
+  useEffect(() => {
+    const queryString = location.split('?')[1];
+    if (queryString) {
+      const searchParams = new URLSearchParams(queryString);
+      const urlPlaceId = searchParams.get('placeId');
+      const urlServerId = searchParams.get('serverId');
+
+      // Only update state if the URL parameter is different from current state
+      // This prevents infinite loops if state updates trigger location changes
+      if (urlPlaceId && urlPlaceId !== placeId) {
+        setPlaceId(urlPlaceId);
+      }
+      if (urlServerId && urlServerId !== gameInstanceId) {
+        setGameInstanceId(urlServerId);
+      }
+    }
+  }, [location, placeId, gameInstanceId]); // Dependencies for this effect
 
   const handlePlaceIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -146,7 +190,7 @@ export default function Home() {
             <div className="inline-flex items-center justify-center w-16 h-16 gradient-roblox rounded-2xl mb-4">
               <Gamepad2 className="text-white text-2xl" size={32} />
             </div>
-            <h1 className="text-3xl font-bold mb-2"> {/* Corrected: changed '3xl' to 'text-3xl' */}
+            <h1 className="text-3xl font-bold mb-2">
               <span className="gradient-text-animated">
                 Slugmoon Warp
               </span>
