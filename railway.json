@@ -1,14 +1,19 @@
 {
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "npm install && npm run build"
+    "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "npm start",
-    "healthcheck": { 
-      "path": ""     
-                    
-                    
-    }
+    "numReplicas": 1,
+    "restartPolicy": {
+      "maxRetries": 10
+    },
+    "healthcheckPath": "/"
+  },
+  "port": 8080,
+  "start": "npm start",
+  "frontend": {
+    "buildCommand": "cd client && npm install && npm run build",
+    "startCommand": "serve -s client/dist",
+    "publishDirectory": "client/dist"
   }
 }
