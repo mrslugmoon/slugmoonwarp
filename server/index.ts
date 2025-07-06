@@ -25,9 +25,7 @@ if (process.env.NODE_ENV === "production") {
   // This route should generally be removed or specific for a backend-only homepage.
   // However, if you want it, keep it here but understand it will
   // prevent '/' from serving your index.html directly.
-  app.get("/", (req, res) => {
-    res.send("Welcome to the app!");
-  });
+
 
 
   // Serve static files from the client/dist directory.
