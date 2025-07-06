@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Gamepad2, Hash, AlertCircle, Play, X, Info } from "lucide-react"; // Import Info icon
+import { Gamepad2, Hash, AlertCircle, Play, X, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from 'next/navigation'; // Import useSearchParams
 
 // Game info interface
 interface GameInfo {
@@ -25,35 +26,52 @@ interface GameInfo {
 }
 
 export default function Home() {
-  const [placeId, setPlaceId] = useState("130452706173960");
-  const [gameInstanceId, setGameInstanceId] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // For form submission/launching
-  const [error, setError] = useState(""); // For form validation errors
+  const searchParams = useSearchParams(); // Initialize useSearchParams hook
+
+  const [placeId, setPlaceId] = useState(""); // Change initial state to empty string
+  const [gameInstanceId, setGameInstanceId] = useState(""); // Change initial state to empty string
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingUrl, setPendingUrl] = useState("");
   const { toast } = useToast();
 
+  // useEffect to read query parameters on component mount
+  useEffect(() => {
+    const urlPlaceId = searchParams.get('placeId');
+    const urlServerId = searchParams.get('serverid'); // Note the lowercase 'serverid'
+
+    if (urlPlaceId && /^\d+$/.test(urlPlaceId)) {
+      setPlaceId(urlPlaceId);
+    }
+    if (urlServerId) {
+      setGameInstanceId(urlServerId);
+    }
+  }, [searchParams]); // Re-run effect if searchParams change (e.g., navigation)
+
+
   // Fetch game info when place ID changes
   const {
     data: gameInfo,
-    isLoading: loadingGameName, // True when fetching game info
-    error: gameInfoError // Capture errors specifically for game info fetch
+    isLoading: loadingGameName,
+    error: gameInfoError
   } = useQuery<GameInfo>({
     queryKey: [`/api/game-info/${placeId}`],
+    // Only enable if placeId is valid and not empty after potential URL param setting
     enabled: !!placeId && placeId.trim() !== "" && /^\d+$/.test(placeId.trim()),
-    refetchOnWindowFocus: false, // Keep as false if you prefer no refetch on focus
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   const handlePlaceIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPlaceId(value);
-    setError(""); // Clear form validation error when input changes
+    setError("");
   };
 
   const handleGameInstanceIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGameInstanceId(e.target.value);
-    setError(""); // Clear form validation error when input changes
+    setError("");
   };
 
   const validateInputs = () => {
@@ -75,8 +93,8 @@ export default function Home() {
       return;
     }
 
-    setError(""); // Clear general form error
-    setIsLoading(true); // Indicate overall submission loading
+    setError("");
+    setIsLoading(true);
 
     try {
       const trimmedGameInstanceId = gameInstanceId.trim();
@@ -94,7 +112,6 @@ export default function Home() {
         robloxUrl = `roblox://experiences/start?placeId=${placeId.trim()}&gameInstanceId=${trimmedGameInstanceId}&launchData=${encodedLaunchData}`;
       }
 
-      // Set pending URL and show confirmation dialog
       setPendingUrl(robloxUrl);
       setShowConfirmDialog(true);
 
@@ -107,7 +124,7 @@ export default function Home() {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false); // Always stop overall loading after attempt
+      setIsLoading(false);
     }
   };
 
@@ -115,14 +132,13 @@ export default function Home() {
     setShowConfirmDialog(false);
 
     if (pendingUrl) {
-      // Attempt to open Roblox URL
       window.location.href = pendingUrl;
 
       toast({
         title: "Launching Roblox",
         description: `Joining ${gameInfo?.name || "game"}...`,
       });
-      setPendingUrl(""); // Clear pendingUrl after use
+      setPendingUrl("");
     }
   };
 
@@ -146,12 +162,12 @@ export default function Home() {
             <div className="inline-flex items-center justify-center w-16 h-16 gradient-roblox rounded-2xl mb-4">
               <Gamepad2 className="text-white text-2xl" size={32} />
             </div>
-            <h1 className="text-3xl font-bold mb-2"> {/* Corrected: changed '3xl' to 'text-3xl' */}
+            <h1 className="text-3xl font-bold mb-2">
               <span className="gradient-text-animated">
                 Slugmoon Warp
               </span>
             </h1>
-            <p className="text-gray-400 text-sm">Get to the right server fast with Slugmoon Warp.</p>
+            <p className="text-gray-400 text-sm gradient-text-animated">Get to the right server fast with Slugmoon Warp.</p>
           </div>
 
           {/* Main Card */}
@@ -273,7 +289,7 @@ export default function Home() {
             <div>
               <p className="font-semibold mb-1">Roblox Installation Required</p>
               <p className="text-blue-300">
-                To use Slugmoon Warp, you must have the Roblox client installed on your computer. This tool works by sending a direct launch command to Roblox.
+                To use Slugmoon Warp, you must have the **Roblox client installed** on your computer. This tool works by sending a direct launch command to Roblox.
               </p>
             </div>
           </div>
@@ -297,6 +313,7 @@ export default function Home() {
             <DialogDescription className="text-gray-300 text-center">
               Are you sure you want to join this game?
             </DialogDescription>
+          </DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col items-center space-y-4 py-4">
