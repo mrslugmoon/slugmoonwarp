@@ -1,0 +1,12 @@
+# nixpacks.toml
+# This tells Nixpacks exactly what packages to install for setup.
+[phases.setup]
+pkgs = ["nodejs_18", "npm-9_x"]
+
+# This confirms the build command.
+[phases.build]
+cmds = ["npm install && npm run build"]
+
+# This confirms the start command.
+[start]
+cmd = "npm start"
