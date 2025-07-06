@@ -1,13 +1,14 @@
-// tailwind.config.js
+// client/tailwind.config.js
+/** @type {import('tailwindcss').Config} */ // This line provides helpful type hints
 module.exports = {
   content: [
-    './index.html',
-    './src/**/*.{js,ts,jsx,tsx}', // IMPORTANT: Confirm this is present and correct!
+    './index.html', // Scans the index.html file in client/
+    './src/**/*.{js,ts,jsx,tsx}', // Scans all JS/TS/JSX/TSX files in client/src and its subdirectories
   ],
   theme: {
     extend: {
       colors: {
-        // This maps the Tailwind color 'border' to your CSS variable '--border'
+        // These map your Tailwind color names to your CSS variables defined in index.css
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -41,7 +42,7 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        // Add your Roblox-inspired colors here as well if you want to use them directly as Tailwind classes
+        // Roblox-inspired colors mapped to their CSS variables
         'roblox-blue': 'var(--roblox-blue)',
         'roblox-dark': 'var(--roblox-dark)',
         'roblox-card': 'var(--roblox-card)',
@@ -76,6 +77,6 @@ module.exports = {
     },
   },
   plugins: [
-    require("tailwindcss-animate") // Example: If you use this
+    require("tailwindcss-animate") // Ensure you have this installed if you use it
   ],
 };
