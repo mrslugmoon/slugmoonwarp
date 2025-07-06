@@ -1,7 +1,15 @@
 import express from "express";
 import cors from "cors";
 import { registerRoutes } from "./routes";
-import path from "path"; // Make sure path is imported
+import path from "path";
+// --- NEW IMPORTS FOR __dirname EQUIVALENT IN ESM ---
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+// --- END NEW IMPORTS ---
 
 const app = express();
 app.use(express.json());
@@ -16,38 +24,23 @@ app.use(cors({
 
 // --- BEGIN PRODUCTION-SPECIFIC ROUTES AND STATIC FILE SERVING ---
 if (process.env.NODE_ENV === "production") {
-  // IMPORTANT: Register your API routes FIRST.
-  // This ensures API calls are handled by your backend.
   registerRoutes(app);
 
-  // Serve the "Welcome to the app!" message only if a specific API route
-  // hasn't been hit, and if it's not a static file request.
-  // This route should generally be removed or specific for a backend-only homepage.
-  // However, if you want it, keep it here but understand it will
-  // prevent '/' from serving your index.html directly.
-
-
-
-  // Serve static files from the client/dist directory.
-  // This handles requests for /assets/index-XXXX.js, /assets/index-YYYY.css, etc.
-  // path.join(__dirname, '../client/dist') is crucial for correct pathing after build.
+  // Use the new __dirname variable
   app.use(express.static(path.join(__dirname, '../client/dist')));
 
   // CATCH-ALL route for client-side routing: serve index.html for all other requests.
-  // This must be the LAST route for your SPA. It ensures React Router takes over.
   app.get('*', (req, res) => {
+    // Use the new __dirname variable
     res.sendFile(path.join(__dirname, '../client/dist/index.html'));
   });
 
 } else {
   // --- DEVELOPMENT-SPECIFIC SETUP ---
-  // In development, Vite dev server handles client assets.
-  // This 'Welcome' message is just for accessing the server's root in dev.
- // app.get("/", (req, res) => {
- //   res.send("Welcome to the app!");
- // });
+  app.get("/", (req, res) => {
+    res.send("Welcome to the app!");
+  });
 
-  // Register API routes for development
   registerRoutes(app);
 
   (async () => {
@@ -69,8 +62,7 @@ if (process.env.NODE_ENV === "production") {
 }
 // --- END PRODUCTION/DEVELOPMENT SPLIT ---
 
-
-// Handle errors globally - this should be near the end of your middleware chain
+// Error handling
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const status = err.status || err.statusCode || 500;
   const message = err.message || "Internal Server Error";
@@ -78,14 +70,12 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   res.status(status).json({ message });
 });
 
-// Production server start outside the if/else for clarity (can be inside too)
-// This applies to the production block after the routes are defined.
+// Production server start
 if (process.env.NODE_ENV === "production") {
     const port = process.env.PORT || 5000;
     app.listen(port, () => {
       console.log(`App is running on port ${port} (Production)`);
     });
 }
-
 
 export default app;
