@@ -41,43 +41,41 @@ export default function Home() {
 
   // --- REVISED LOGIC FOR URL PARAMETER PARSING ---
   useEffect(() => {
-    console.log("Current location for parsing:", location); // Debugging line
+    console.log("Current location for parsing (wouter):", location); // Debugging line
+    console.log("Full browser URL (window.location.href):", window.location.href); // Debugging line
 
-    const queryString = location.split('?')[1];
+    // Use window.location.search directly as it's more reliable for initial load query params
+    const searchString = window.location.search;
 
-    if (queryString) {
-      const searchParams = new URLSearchParams(queryString);
+    if (searchString) {
+      const searchParams = new URLSearchParams(searchString);
       const urlPlaceId = searchParams.get('placeId');
       const urlServerId = searchParams.get('serverId');
 
       // Update placeId state
       if (urlPlaceId && /^\d+$/.test(urlPlaceId.trim())) {
-        // Only update if different to avoid unnecessary re-renders
         if (urlPlaceId !== placeId) {
           setPlaceId(urlPlaceId);
-          setError(""); // Clear error if a valid ID is parsed
+          setError("");
         }
       } else {
-        // If no valid placeId in URL, or not present, revert to default if current is not default
         if (placeId !== "130452706173960") {
           setPlaceId("130452706173960");
         }
       }
 
       // Update gameInstanceId state
-      // Use null check for urlServerId to distinguish absence from empty string
-      if (urlServerId !== null) {
+      if (urlServerId !== null) { // Check for null to differentiate missing from empty string
         if (urlServerId !== gameInstanceId) {
           setGameInstanceId(urlServerId);
         }
       } else {
-        // If serverId is not in URL, ensure gameInstanceId is empty
         if (gameInstanceId !== "") {
           setGameInstanceId("");
         }
       }
 
-      console.log("Parsed - Place ID:", urlPlaceId, "Server ID:", urlServerId); // Debugging line
+      console.log("Parsed - Place ID:", urlPlaceId, "Server ID:", urlServerId);
     } else {
       // If no query string, ensure default states are applied
       if (placeId !== "130452706173960") {
@@ -86,11 +84,14 @@ export default function Home() {
       if (gameInstanceId !== "") {
         setGameInstanceId("");
       }
-      console.log("No query parameters found in URL. Using defaults."); // Debugging line
+      console.log("No query parameters found in URL. Using defaults.");
     }
-  }, [location, placeId, gameInstanceId]); // Depend on 'location' and states to prevent loops and ensure updates
+    // Dependency array: only re-run if location (wouter's view) or state changes, preventing infinite loops.
+    // However, the primary trigger for this logic should be the initial load,
+    // and `window.location.search` is more reliable for that.
+  }, [location, placeId, gameInstanceId]); // Keep these for wouter-driven changes if any
 
-  // Fetch game info when place ID changes (This remains the same)
+  // Fetch game info when place ID changes
   const {
     data: gameInfo,
     isLoading: loadingGameName,
