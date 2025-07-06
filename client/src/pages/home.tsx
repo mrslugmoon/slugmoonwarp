@@ -1,3 +1,6 @@
+// client/src/pages/home.tsx
+"use client"; // This directive marks the file as a Client Component
+
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -167,7 +170,7 @@ export default function Home() {
                 Slugmoon Warp
               </span>
             </h1>
-            <p className="text-gray-400 text-sm gradient-text-animated">Get to the right server fast with Slugmoon Warp.</p>
+            <p className="text-gray-400 text-sm">Get to the right server fast with Slugmoon Warp.</p>
           </div>
 
           {/* Main Card */}
@@ -313,7 +316,7 @@ export default function Home() {
             <DialogDescription className="text-gray-300 text-center">
               Are you sure you want to join this game?
             </DialogDescription>
-          </DialogHeader> {/* Removed the extra closing DialogDescription tag here */}
+          </DialogHeader>
 
           <div className="flex flex-col items-center space-y-4 py-4">
             {/* Game Icon */}
