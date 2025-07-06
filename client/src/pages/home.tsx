@@ -1,14 +1,12 @@
-// client/src/pages/home.tsx
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Gamepad2, Hash, AlertCircle, Play, X, Info } from "lucide-react";
+import { Gamepad2, Hash, AlertCircle, Play, X, Info } from "lucide-react"; // Import Info icon
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
 
 // Game info interface
 interface GameInfo {
@@ -27,91 +25,35 @@ interface GameInfo {
 }
 
 export default function Home() {
-  const [location] = useLocation();
-
-  // Initialize with basic defaults. The useEffect will handle parsing from URL.
   const [placeId, setPlaceId] = useState("130452706173960");
   const [gameInstanceId, setGameInstanceId] = useState("");
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // For form submission/launching
+  const [error, setError] = useState(""); // For form validation errors
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingUrl, setPendingUrl] = useState("");
   const { toast } = useToast();
 
-  // --- REVISED LOGIC FOR URL PARAMETER PARSING ---
-  useEffect(() => {
-    console.log("Current location for parsing (wouter):", location); // Debugging line
-    console.log("Full browser URL (window.location.href):", window.location.href); // Debugging line
-
-    // Use window.location.search directly as it's more reliable for initial load query params
-    const searchString = window.location.search;
-
-    if (searchString) {
-      const searchParams = new URLSearchParams(searchString);
-      const urlPlaceId = searchParams.get('placeId');
-      const urlServerId = searchParams.get('serverId');
-
-      // Update placeId state
-      if (urlPlaceId && /^\d+$/.test(urlPlaceId.trim())) {
-        if (urlPlaceId !== placeId) {
-          setPlaceId(urlPlaceId);
-          setError("");
-        }
-      } else {
-        if (placeId !== "130452706173960") {
-          setPlaceId("130452706173960");
-        }
-      }
-
-      // Update gameInstanceId state
-      if (urlServerId !== null) { // Check for null to differentiate missing from empty string
-        if (urlServerId !== gameInstanceId) {
-          setGameInstanceId(urlServerId);
-        }
-      } else {
-        if (gameInstanceId !== "") {
-          setGameInstanceId("");
-        }
-      }
-
-      console.log("Parsed - Place ID:", urlPlaceId, "Server ID:", urlServerId);
-    } else {
-      // If no query string, ensure default states are applied
-      if (placeId !== "130452706173960") {
-        setPlaceId("130452706173960");
-      }
-      if (gameInstanceId !== "") {
-        setGameInstanceId("");
-      }
-      console.log("No query parameters found in URL. Using defaults.");
-    }
-    // Dependency array: only re-run if location (wouter's view) or state changes, preventing infinite loops.
-    // However, the primary trigger for this logic should be the initial load,
-    // and `window.location.search` is more reliable for that.
-  }, [location, placeId, gameInstanceId]); // Keep these for wouter-driven changes if any
-
   // Fetch game info when place ID changes
   const {
     data: gameInfo,
-    isLoading: loadingGameName,
-    error: gameInfoError
+    isLoading: loadingGameName, // True when fetching game info
+    error: gameInfoError // Capture errors specifically for game info fetch
   } = useQuery<GameInfo>({
     queryKey: [`/api/game-info/${placeId}`],
     enabled: !!placeId && placeId.trim() !== "" && /^\d+$/.test(placeId.trim()),
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false, // Keep as false if you prefer no refetch on focus
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const handlePlaceIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPlaceId(value);
-    setError("");
+    setError(""); // Clear form validation error when input changes
   };
 
   const handleGameInstanceIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGameInstanceId(e.target.value);
-    setError("");
+    setError(""); // Clear form validation error when input changes
   };
 
   const validateInputs = () => {
@@ -133,8 +75,8 @@ export default function Home() {
       return;
     }
 
-    setError("");
-    setIsLoading(true);
+    setError(""); // Clear general form error
+    setIsLoading(true); // Indicate overall submission loading
 
     try {
       const trimmedGameInstanceId = gameInstanceId.trim();
@@ -152,6 +94,7 @@ export default function Home() {
         robloxUrl = `roblox://experiences/start?placeId=${placeId.trim()}&gameInstanceId=${trimmedGameInstanceId}&launchData=${encodedLaunchData}`;
       }
 
+      // Set pending URL and show confirmation dialog
       setPendingUrl(robloxUrl);
       setShowConfirmDialog(true);
 
@@ -164,7 +107,7 @@ export default function Home() {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Always stop overall loading after attempt
     }
   };
 
@@ -172,13 +115,14 @@ export default function Home() {
     setShowConfirmDialog(false);
 
     if (pendingUrl) {
+      // Attempt to open Roblox URL
       window.location.href = pendingUrl;
 
       toast({
         title: "Launching Roblox",
         description: `Joining ${gameInfo?.name || "game"}...`,
       });
-      setPendingUrl("");
+      setPendingUrl(""); // Clear pendingUrl after use
     }
   };
 
@@ -202,7 +146,7 @@ export default function Home() {
             <div className="inline-flex items-center justify-center w-16 h-16 gradient-roblox rounded-2xl mb-4">
               <Gamepad2 className="text-white text-2xl" size={32} />
             </div>
-            <h1 className="text-3xl font-bold mb-2">
+            <h1 className="text-3xl font-bold mb-2"> {/* Corrected: changed '3xl' to 'text-3xl' */}
               <span className="gradient-text-animated">
                 Slugmoon Warp
               </span>
@@ -329,7 +273,6 @@ export default function Home() {
             <div>
               <p className="font-semibold mb-1">Roblox Installation Required</p>
               <p className="text-blue-300">
-                To use Slugmoon Warp, you must have the **Roblox client installed** on your computer. This tool works by sending a direct launch command to Roblox.
                 To use Slugmoon Warp, you must have the Roblox client installed on your computer. This tool works by sending a direct launch command to Roblox.
               </p>
             </div>
