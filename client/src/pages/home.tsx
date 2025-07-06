@@ -313,8 +313,7 @@ export default function Home() {
             <DialogDescription className="text-gray-300 text-center">
               Are you sure you want to join this game?
             </DialogDescription>
-          </DialogDescription>
-          </DialogHeader>
+          </DialogHeader> {/* Removed the extra closing DialogDescription tag here */}
 
           <div className="flex flex-col items-center space-y-4 py-4">
             {/* Game Icon */}
