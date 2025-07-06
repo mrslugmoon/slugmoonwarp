@@ -1,44 +1,32 @@
-// server/index.ts
 import express from "express";
 import cors from "cors";
 import { registerRoutes } from "./routes";
-import path from "path"; // Ensure this is imported
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// CORS setup
+// CORS setup for all origins (be cautious in production)
 app.use(cors({
-  origin: '*',
+  origin: '*',  // You might want to restrict origins in production
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   credentials: true
 }));
 
-// 1. Register API routes FIRST
-// These should handle specific API endpoints (e.g., /api/users, /api/auth)
-registerRoutes(app);
-
-// 2. Serve static files and handle client-side routing ONLY in production
+// Serve static files in production (if needed)
 if (process.env.NODE_ENV === "production") {
-  // CRITICAL: Serve compiled client-side assets from client/dist
-  app.use(express.static(path.join(__dirname, '../client/dist')));
-
-  // Fallback for client-side routing (e.g., React Router paths like /dashboard)
-  // This must come AFTER API routes and static asset serving.
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-  });
-} else {
-  // In development, the Vite dev server handles client assets.
-  // This 'Welcome' message is just for accessing the server's root in dev.
-  app.get("/", (req, res) => {
-    res.send("Welcome to the app!");
-  });
+  app.use(express.static("dist/public")); // This was the original line
 }
 
+// Root route handler
+app.get("/", (req, res) => {
+  res.send("Welcome to the app!");
+});
 
-// Handle errors globally - this should be near the end of your middleware chain
+// Register API routes
+registerRoutes(app);
+
+// Handle errors globally
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const status = err.status || err.statusCode || 500;
   const message = err.message || "Internal Server Error";
@@ -46,9 +34,7 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   res.status(status).json({ message });
 });
 
-// --- Server Start Logic ---
-// This part remains largely the same, but emphasizes that
-// in production, it's just app.listen().
+// --- Local Development Server Setup (ONLY for running locally) ---
 if (process.env.NODE_ENV === "development") {
   (async () => {
     try {
@@ -57,21 +43,20 @@ if (process.env.NODE_ENV === "development") {
 
       const localServer = createServer(app);
 
-      await setupVite(app, localServer); // Connects Vite's dev server
+      await setupVite(app, localServer);
 
       const port = Number(process.env.PORT) || 5000;
       localServer.listen({ port, host: "0.0.0.0", reusePort: true }, () => {
-        console.log(`Serving on port ${port} (Development)`);
+        console.log(`Serving on port ${port}`);
       });
     } catch (e) {
       console.error("Error starting local development server:", e);
     }
   })();
 } else {
-  // Production server start
   const port = process.env.PORT || 5000;
   app.listen(port, () => {
-    console.log(`App is running on port ${port} (Production)`);
+    console.log(`App is running on port ${port}`);
   });
 }
 
