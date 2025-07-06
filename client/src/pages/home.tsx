@@ -1,5 +1,5 @@
 // client/src/pages/home.tsx
-"use client"; // This directive marks the file as a Client Component
+
 
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
