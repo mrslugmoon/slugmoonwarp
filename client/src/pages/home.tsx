@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Gamepad2, Hash, AlertCircle, Play, X, Info } from "lucide-react"; // Import Info icon
+import { Gamepad2, Hash, AlertCircle, Play, X, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter"; // <--- Import useLocation from wouter
+import { useLocation } from "wouter";
 
 // Game info interface
 interface GameInfo {
@@ -27,77 +27,90 @@ interface GameInfo {
 }
 
 export default function Home() {
-  const [location] = useLocation(); // <--- Get the current URL location string
+  const [location] = useLocation();
 
-  // Initialize placeId and gameInstanceId states from URL or default values
-  const [placeId, setPlaceId] = useState(() => {
-    const queryString = location.split('?')[1];
-    if (queryString) {
-      const searchParams = new URLSearchParams(queryString);
-      return searchParams.get('placeId') || "130452706173960"; // Default if not in URL
-    }
-    return "130452706173960"; // Default if no query string
-  });
+  // Initialize with basic defaults. The useEffect will handle parsing from URL.
+  const [placeId, setPlaceId] = useState("130452706173960");
+  const [gameInstanceId, setGameInstanceId] = useState("");
 
-  const [gameInstanceId, setGameInstanceId] = useState(() => {
-    const queryString = location.split('?')[1];
-    if (queryString) {
-      const searchParams = new URLSearchParams(queryString);
-      return searchParams.get('serverId') || ""; // Default if not in URL
-    }
-    return ""; // Default if no query string
-  });
-
-  const [isLoading, setIsLoading] = useState(false); // For form submission/launching
-  const [error, setError] = useState(""); // For form validation errors
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingUrl, setPendingUrl] = useState("");
   const { toast } = useToast();
 
-  // Fetch game info when place ID changes
-  const {
-    data: gameInfo,
-    isLoading: loadingGameName, // True when fetching game info
-    error: gameInfoError // Capture errors specifically for game info fetch
-  } = useQuery<GameInfo>({
-    queryKey: [`/api/game-info/${placeId}`],
-    enabled: !!placeId && placeId.trim() !== "" && /^\d+$/.test(placeId.trim()),
-    refetchOnWindowFocus: false, // Keep as false if you prefer no refetch on focus
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  // Optional: If you want to react to URL changes after initial load
-  // and update the form fields, you can add another useEffect.
-  // However, usually, we just initialize once.
-  // If a user navigates to a new URL, the component would remount
-  // or the `useState` initializer would run again.
+  // --- REVISED LOGIC FOR URL PARAMETER PARSING ---
   useEffect(() => {
+    console.log("Current location for parsing:", location); // Debugging line
+
     const queryString = location.split('?')[1];
+
     if (queryString) {
       const searchParams = new URLSearchParams(queryString);
       const urlPlaceId = searchParams.get('placeId');
       const urlServerId = searchParams.get('serverId');
 
-      // Only update state if the URL parameter is different from current state
-      // This prevents infinite loops if state updates trigger location changes
-      if (urlPlaceId && urlPlaceId !== placeId) {
-        setPlaceId(urlPlaceId);
+      // Update placeId state
+      if (urlPlaceId && /^\d+$/.test(urlPlaceId.trim())) {
+        // Only update if different to avoid unnecessary re-renders
+        if (urlPlaceId !== placeId) {
+          setPlaceId(urlPlaceId);
+          setError(""); // Clear error if a valid ID is parsed
+        }
+      } else {
+        // If no valid placeId in URL, or not present, revert to default if current is not default
+        if (placeId !== "130452706173960") {
+          setPlaceId("130452706173960");
+        }
       }
-      if (urlServerId && urlServerId !== gameInstanceId) {
-        setGameInstanceId(urlServerId);
+
+      // Update gameInstanceId state
+      // Use null check for urlServerId to distinguish absence from empty string
+      if (urlServerId !== null) {
+        if (urlServerId !== gameInstanceId) {
+          setGameInstanceId(urlServerId);
+        }
+      } else {
+        // If serverId is not in URL, ensure gameInstanceId is empty
+        if (gameInstanceId !== "") {
+          setGameInstanceId("");
+        }
       }
+
+      console.log("Parsed - Place ID:", urlPlaceId, "Server ID:", urlServerId); // Debugging line
+    } else {
+      // If no query string, ensure default states are applied
+      if (placeId !== "130452706173960") {
+        setPlaceId("130452706173960");
+      }
+      if (gameInstanceId !== "") {
+        setGameInstanceId("");
+      }
+      console.log("No query parameters found in URL. Using defaults."); // Debugging line
     }
-  }, [location, placeId, gameInstanceId]); // Dependencies for this effect
+  }, [location, placeId, gameInstanceId]); // Depend on 'location' and states to prevent loops and ensure updates
+
+  // Fetch game info when place ID changes (This remains the same)
+  const {
+    data: gameInfo,
+    isLoading: loadingGameName,
+    error: gameInfoError
+  } = useQuery<GameInfo>({
+    queryKey: [`/api/game-info/${placeId}`],
+    enabled: !!placeId && placeId.trim() !== "" && /^\d+$/.test(placeId.trim()),
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const handlePlaceIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPlaceId(value);
-    setError(""); // Clear form validation error when input changes
+    setError("");
   };
 
   const handleGameInstanceIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGameInstanceId(e.target.value);
-    setError(""); // Clear form validation error when input changes
+    setError("");
   };
 
   const validateInputs = () => {
@@ -119,8 +132,8 @@ export default function Home() {
       return;
     }
 
-    setError(""); // Clear general form error
-    setIsLoading(true); // Indicate overall submission loading
+    setError("");
+    setIsLoading(true);
 
     try {
       const trimmedGameInstanceId = gameInstanceId.trim();
@@ -138,7 +151,6 @@ export default function Home() {
         robloxUrl = `roblox://experiences/start?placeId=${placeId.trim()}&gameInstanceId=${trimmedGameInstanceId}&launchData=${encodedLaunchData}`;
       }
 
-      // Set pending URL and show confirmation dialog
       setPendingUrl(robloxUrl);
       setShowConfirmDialog(true);
 
@@ -151,7 +163,7 @@ export default function Home() {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false); // Always stop overall loading after attempt
+      setIsLoading(false);
     }
   };
 
@@ -159,14 +171,13 @@ export default function Home() {
     setShowConfirmDialog(false);
 
     if (pendingUrl) {
-      // Attempt to open Roblox URL
       window.location.href = pendingUrl;
 
       toast({
         title: "Launching Roblox",
         description: `Joining ${gameInfo?.name || "game"}...`,
       });
-      setPendingUrl(""); // Clear pendingUrl after use
+      setPendingUrl("");
     }
   };
 
