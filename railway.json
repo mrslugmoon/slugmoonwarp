@@ -5,6 +5,10 @@
   },
   "deploy": {
     "startCommand": "npm start",
-    "healthcheckPath": "/"
+    "healthcheck": { 
+      "path": ""     
+                    
+                    
+    }
   }
 }
