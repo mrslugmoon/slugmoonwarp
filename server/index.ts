@@ -43,9 +43,9 @@ if (process.env.NODE_ENV === "production") {
   // --- DEVELOPMENT-SPECIFIC SETUP ---
   // In development, Vite dev server handles client assets.
   // This 'Welcome' message is just for accessing the server's root in dev.
-  app.get("/", (req, res) => {
-    res.send("Welcome to the app!");
-  });
+ // app.get("/", (req, res) => {
+ //   res.send("Welcome to the app!");
+ // });
 
   // Register API routes for development
   registerRoutes(app);
